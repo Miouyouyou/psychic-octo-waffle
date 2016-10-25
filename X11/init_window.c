@@ -121,6 +121,8 @@ EGLBoolean CreateEGLContext ()
        EGL_BLUE_SIZE,       5,
        EGL_ALPHA_SIZE,      8,
        EGL_DEPTH_SIZE,     16,
+       EGL_SAMPLE_BUFFERS, 1,
+       EGL_SAMPLES, 2,
        EGL_NONE
    };
    EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE, EGL_NONE };
