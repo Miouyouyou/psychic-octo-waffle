@@ -5,15 +5,17 @@
 #include <helpers/base_gl.h>
 #include <helpers/struct.h>
 
-#define GLCARD TWO_TRIANGLES_TEX_QUAD
+#include <stddef.h>
+
+#define GLCARD TWO_BYTES_TRIANGLES_TEX_QUAD
 
 /**** CARD MODEL ****/
 // Comments use a 1080p screen as a basis
-#define CARD_WIDTH 0.090625f // 174px - ~Bridge ratio
-#define CARD_HEIGHT 0.25f // 270px - ~Bridge ratio
-#define CARD_ALPHA_PART_HEIGHT 0.05f // 13.5px * 2 (Two parts)
+#define CARD_WIDTH ((uint8_t) (0.090625f*127)) // 174px - ~Bridge ratio
+#define CARD_HEIGHT ((uint8_t) (0.25f*127)) // 270px - ~Bridge ratio
+#define CARD_ALPHA_PART_HEIGHT ((uint8_t) (0.05f*127)) // 13.5px * 2 (Two parts)
 
-#define CARD_X 14
+#define CARD_X 13
 #define CARD_Y 1
 
 #define TEX_WIDTH_IN_PIXELS 1392.0
@@ -36,7 +38,7 @@
 #define CARD_TEX_OPAQUE_BOTTOM (CARD_TEX_ALPHA_BOTTOM_TOP)
 #define CARD_TEX_OPAQUE_TOP (CARD_TEX_ALPHA_TOP_BOTTOM)
 
-struct GLcard { two_tris_quad opaque, top, bottom; } gl_cards_parts = {
+struct GLcard { two_BF_tris_quad opaque, top, bottom; } gl_cards_parts = {
   .opaque = GLCARD(
     /* Coords : Left, Right, Down, Up - Tex : Left, Right, Down Up */
     -CARD_WIDTH, CARD_WIDTH,
@@ -66,28 +68,25 @@ typedef struct GLcard GLcard;
 
 void
 offseted_GLcard_copy(GLcard *model, GLcard *card,
-                     GLfloat x_offset, GLfloat y_offset) {
-  copy_two_triangles_quad_with_offset(
-    gl_cards_parts.opaque.raw_coords, x_offset, y_offset,
-    card->opaque.raw_coords
+                     uint8_t x_offset, uint8_t y_offset) {
+  copy_two_bytes_triangles_quad_with_offset(
+   &model->opaque, x_offset, y_offset, &card->opaque
   );
-  copy_two_triangles_quad_with_offset(
-    gl_cards_parts.top.raw_coords, x_offset, y_offset,
-    card->top.raw_coords
+  copy_two_bytes_triangles_quad_with_offset(
+   &model->top, x_offset, y_offset, &card->top
   );
-  copy_two_triangles_quad_with_offset(
-    gl_cards_parts.bottom.raw_coords, x_offset, y_offset,
-    card->bottom.raw_coords
+  copy_two_bytes_triangles_quad_with_offset(
+   &model->bottom, x_offset, y_offset, &card->bottom
   );
 }
 
 /**** The actual code ****/
-enum attributes { attr_xyst, attrs_n };
+enum attributes { attr_xy, attr_st, attrs_n };
 
 void generate_cards_coords_in_buffer(GLint *buffer_id) {
   GLcard cards[2];
-  offseted_GLcard_copy(&gl_cards_parts, cards+0, -0.02f, 0);
-  offseted_GLcard_copy(&gl_cards_parts, cards+1, 0.24f, 0);
+  offseted_GLcard_copy(&gl_cards_parts, cards+0, -5, 0);
+  offseted_GLcard_copy(&gl_cards_parts, cards+1, 31, 0);
 
   glGenBuffers(1, buffer_id);
   glBindBuffer(GL_ARRAY_BUFFER, *buffer_id);
@@ -100,13 +99,15 @@ void myy_init() {
   uploadTextures("tex/cards.raw", 1, &tex_id);
   GLuint program =
     glhSetupAndUse("shaders/standard.vert", "shaders/standard.frag",
-                   attrs_n, "xyst");
+                   attrs_n, "xy\0st");
   glUniform1i(glGetUniformLocation(program, "sid"), 0);
 
   GLint buffer_id;
   generate_cards_coords_in_buffer(&buffer_id);
 
-  glEnableVertexAttribArray(attr_xyst);
+  glEnableVertexAttribArray(attr_st);
+  glEnableVertexAttribArray(attr_xy);
+
   glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
 
   glEnable(GL_CULL_FACE);
@@ -121,7 +122,8 @@ void myy_draw() {
   glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
   glClearColor(0.8f,0.8f,0.8f,1.0f);
 
-  glVertexAttribPointer(attr_xyst, 4, GL_FLOAT, GL_FALSE, 0, 0);
+  glVertexAttribPointer(attr_st, 2, GL_FLOAT, GL_FALSE, sizeof(struct byte_textured_point_2D), 0);
+  glVertexAttribPointer(attr_xy, 2, GL_BYTE, GL_TRUE, sizeof(struct byte_textured_point_2D), (void *) offsetof(struct byte_textured_point_2D, x));
   /* 6 points per quad, 3 quads per card, 2 cards */
   glDrawArrays(GL_TRIANGLES, 0, 6*3*2);
 }
