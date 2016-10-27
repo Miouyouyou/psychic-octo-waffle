@@ -9,58 +9,60 @@
 
 #define GLCARD TWO_BYTES_TRIANGLES_TEX_QUAD
 
+
+
 /**** CARD MODEL ****/
 // Comments use a 1080p screen as a basis
-#define CARD_WIDTH ((uint8_t) (0.090625f*127)) // 174px - ~Bridge ratio
-#define CARD_HEIGHT ((uint8_t) (0.25f*127)) // 270px - ~Bridge ratio
-#define CARD_ALPHA_PART_HEIGHT ((uint8_t) (0.05f*127)) // 13.5px * 2 (Two parts)
+#define CARD_WIDTH ((int8_t) (0.090625f*127)) // 174px - ~Bridge ratio
+#define CARD_HEIGHT ((int8_t) (0.25f*127)) // 270px - ~Bridge ratio
+#define CARD_ALPHA_PART_HEIGHT ((int8_t) (0.05f*127)) // 13.5px * 2 (Two parts)
 
-#define CARD_X 13
+#define CARD_X 14
 #define CARD_Y 1
 
-#define TEX_WIDTH_IN_PIXELS 1392.0
-#define TEX_HEIGHT_IN_PIXELS 540.0
-#define HALF_TEX_WIDTH_PIXEL (1/(TEX_WIDTH_IN_PIXELS*2))
-#define HALF_TEX_HEIGHT_PIXEL (1/(TEX_HEIGHT_IN_PIXELS*2))
+#define CARDS_TEX_WIDTH_IN_PIXELS 1392.0
+#define CARDS_TEX_HEIGHT_IN_PIXELS 540.0
+#define CARD_HALF_TEX_WIDTH_PIXEL (1/(CARDS_TEX_WIDTH_IN_PIXELS*2))
+#define CARD_HALF_TEX_HEIGHT_PIXEL (1/(CARDS_TEX_HEIGHT_IN_PIXELS*2))
 
 #define CARD_TEX_WIDTH 0.0625f
 #define CARD_TEX_HEIGHT 0.25f
 #define CARD_ALPHA_PART_TEX_HEIGHT 0.025f
 
-#define CARD_TEX_LEFT (CARD_TEX_WIDTH*CARD_X+HALF_TEX_WIDTH_PIXEL)
-#define CARD_TEX_RIGHT (CARD_TEX_WIDTH*(CARD_X+1)-HALF_TEX_WIDTH_PIXEL)
+#define CARD_TEX_LEFT (CARD_TEX_WIDTH*CARD_X+CARD_HALF_TEX_WIDTH_PIXEL)
+#define CARD_TEX_RIGHT (CARD_TEX_WIDTH*(CARD_X+1)-CARD_HALF_TEX_WIDTH_PIXEL)
 
 /* Splitting cards mesh in two alpha parts and one opaque part */
-#define CARD_TEX_ALPHA_BOTTOM_BOTTOM (CARD_TEX_HEIGHT*CARD_Y+HALF_TEX_HEIGHT_PIXEL)
+#define CARD_TEX_ALPHA_BOTTOM_BOTTOM (CARD_TEX_HEIGHT*CARD_Y+CARD_HALF_TEX_HEIGHT_PIXEL)
 #define CARD_TEX_ALPHA_BOTTOM_TOP (CARD_TEX_HEIGHT*CARD_Y+CARD_ALPHA_PART_TEX_HEIGHT)
-#define CARD_TEX_ALPHA_TOP_TOP (CARD_TEX_HEIGHT*(CARD_Y+1)-HALF_TEX_HEIGHT_PIXEL)
+#define CARD_TEX_ALPHA_TOP_TOP (CARD_TEX_HEIGHT*(CARD_Y+1)-CARD_HALF_TEX_HEIGHT_PIXEL)
 #define CARD_TEX_ALPHA_TOP_BOTTOM (CARD_TEX_ALPHA_TOP_TOP-CARD_ALPHA_PART_TEX_HEIGHT)
 #define CARD_TEX_OPAQUE_BOTTOM (CARD_TEX_ALPHA_BOTTOM_TOP)
 #define CARD_TEX_OPAQUE_TOP (CARD_TEX_ALPHA_TOP_BOTTOM)
 
-struct GLcard { two_BF_tris_quad opaque, top, bottom; } gl_cards_parts = {
+struct GLcard { BUS_two_tris_quad opaque, top, bottom; } gl_cards_parts = {
   .opaque = GLCARD(
     /* Coords : Left, Right, Down, Up - Tex : Left, Right, Down Up */
     -CARD_WIDTH, CARD_WIDTH,
     -(CARD_HEIGHT-CARD_ALPHA_PART_HEIGHT),
      (CARD_HEIGHT-CARD_ALPHA_PART_HEIGHT),
-     CARD_TEX_LEFT, CARD_TEX_RIGHT,
-     CARD_TEX_OPAQUE_BOTTOM,
-     CARD_TEX_OPAQUE_TOP
+     ((uint16_t) (CARD_TEX_LEFT*65535)), ((uint16_t) (CARD_TEX_RIGHT*65535)),
+     ((uint16_t) (CARD_TEX_OPAQUE_BOTTOM*65535)),
+     ((uint16_t) (CARD_TEX_OPAQUE_TOP*65535))
   ),
   .top = GLCARD(
     -CARD_WIDTH, CARD_WIDTH,
     (CARD_HEIGHT-CARD_ALPHA_PART_HEIGHT), CARD_HEIGHT,
-    CARD_TEX_LEFT, CARD_TEX_RIGHT,
-    CARD_TEX_ALPHA_TOP_BOTTOM,
-    CARD_TEX_ALPHA_TOP_TOP
+    ((uint16_t) (CARD_TEX_LEFT*65535)), ((uint16_t) (CARD_TEX_RIGHT*65535)),
+    ((uint16_t) (CARD_TEX_ALPHA_TOP_BOTTOM*65535)),
+    ((uint16_t) (CARD_TEX_ALPHA_TOP_TOP*65535))
   ),
   .bottom = GLCARD(
     -CARD_WIDTH, CARD_WIDTH,
     -CARD_HEIGHT, -(CARD_HEIGHT-CARD_ALPHA_PART_HEIGHT),
-    CARD_TEX_LEFT, CARD_TEX_RIGHT,
-    CARD_TEX_ALPHA_BOTTOM_BOTTOM,
-    CARD_TEX_ALPHA_BOTTOM_TOP
+    ((uint16_t) (CARD_TEX_LEFT*65535)), ((uint16_t) (CARD_TEX_RIGHT*65535)),
+    ((uint16_t) (CARD_TEX_ALPHA_BOTTOM_BOTTOM*65535)),
+    ((uint16_t) (CARD_TEX_ALPHA_BOTTOM_TOP*65535))
   )
 };
 
@@ -68,14 +70,14 @@ typedef struct GLcard GLcard;
 
 void
 offseted_GLcard_copy(GLcard *model, GLcard *card,
-                     uint8_t x_offset, uint8_t y_offset) {
-  copy_two_bytes_triangles_quad_with_offset(
+                     int8_t x_offset, int8_t y_offset) {
+  copy_BUS_triangles_quad_with_offset(
    &model->opaque, x_offset, y_offset, &card->opaque
   );
-  copy_two_bytes_triangles_quad_with_offset(
+  copy_BUS_triangles_quad_with_offset(
    &model->top, x_offset, y_offset, &card->top
   );
-  copy_two_bytes_triangles_quad_with_offset(
+  copy_BUS_triangles_quad_with_offset(
    &model->bottom, x_offset, y_offset, &card->bottom
   );
 }
@@ -90,8 +92,7 @@ void generate_cards_coords_in_buffer(GLint *buffer_id) {
 
   glGenBuffers(1, buffer_id);
   glBindBuffer(GL_ARRAY_BUFFER, *buffer_id);
-  glBufferData(GL_ARRAY_BUFFER, 2*sizeof(GLcard),
-               (GLfloat *) cards, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 2*sizeof(GLcard), cards, GL_STATIC_DRAW);
 }
 
 void myy_init() {
@@ -122,8 +123,8 @@ void myy_draw() {
   glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
   glClearColor(0.8f,0.8f,0.8f,1.0f);
 
-  glVertexAttribPointer(attr_st, 2, GL_FLOAT, GL_FALSE, sizeof(struct byte_textured_point_2D), 0);
-  glVertexAttribPointer(attr_xy, 2, GL_BYTE, GL_TRUE, sizeof(struct byte_textured_point_2D), (void *) offsetof(struct byte_textured_point_2D, x));
+  glVertexAttribPointer(attr_st, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(struct BUS_textured_point_2D), 0);
+  glVertexAttribPointer(attr_xy, 2, GL_BYTE, GL_TRUE, sizeof(struct BUS_textured_point_2D), (void *) offsetof(struct BUS_textured_point_2D, x));
   /* 6 points per quad, 3 quads per card, 2 cards */
   glDrawArrays(GL_TRIANGLES, 0, 6*3*2);
 }

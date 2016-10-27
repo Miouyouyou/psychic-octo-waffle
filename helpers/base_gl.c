@@ -186,6 +186,17 @@ void copy_two_bytes_triangles_quad_with_offset
 
 }
 
+void copy_BUS_triangles_quad_with_offset
+(BUS_two_tris_quad* mdl, GLbyte x_offset,
+ GLbyte y_offset, BUS_two_tris_quad* cpy) {
+   for (int i = 0; i < two_triangles_corners; i ++) {
+     cpy->points[i].s = mdl->points[i].s;
+     cpy->points[i].t = mdl->points[i].t;
+     cpy->points[i].x = mdl->points[i].x + x_offset;
+     cpy->points[i].y = mdl->points[i].y + y_offset;
+   }
+ }
+
 void copy_quad_to_offseted_layered_quad
 (GLfloat *card_copy_coords, GLfloat *model_coords,
  GLfloat x_offset, GLfloat y_offset, GLfloat z_layer) {

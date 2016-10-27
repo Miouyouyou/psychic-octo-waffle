@@ -33,6 +33,18 @@ union byte_two_triangles_textured_quad_2D_representations {
   struct byte_textured_point_2D points[6];
 } __PALIGN__;
 
+struct BUS_textured_point_2D { GLushort s, t; GLbyte x, y; } __PALIGN__;
+struct BUS_textured_triangle_2D { struct BUS_textured_point_2D a, b, c; } __PALIGN__;
+struct BUS_two_triangles_textured_quad_2D { struct BUS_textured_triangle_2D first, second; } __PALIGN__;
+
+union BUS_two_triangles_textured_quad_2D_representations {
+  struct BUS_two_triangles_textured_quad_2D quad;
+  struct BUS_textured_triangle_2D triangles[2];
+  struct BUS_textured_point_2D points[6];
+} __PALIGN__;
+
+typedef union BUS_two_triangles_textured_quad_2D_representations BUS_two_tris_quad;
+
 union two_triangles_textured_quad_2D_representations {
   struct two_triangles_textured_quad_2D quad;
   struct textured_triangle_2D triangles[2];
@@ -52,7 +64,6 @@ typedef union byte_two_triangles_textured_quad_2D_representations two_BF_tris_qu
     { .s = left_tex,  .t = down_tex, .x = left,  .y = down },  \
   } \
 }
-
 
 union two_textured_layered_triangles_quad_representations {
   struct two_textured_layered_triangles_quad quad;
@@ -79,8 +90,6 @@ enum quad_coords_order {
   upleft_corner, downleft_corner, upright_corner, downright_corner,
   repeated_upright_corner, repeated_downleft_corner, two_triangles_corners
 };
-
-
 
 struct gleanup {
   void (*check)(GLuint, GLenum, GLint* );
@@ -112,6 +121,9 @@ void copy_two_triangles_quad_with_offset(GLfloat *model_coords,
 void copy_two_bytes_triangles_quad_with_offset
 (two_BF_tris_quad* mdl, GLbyte x_offset,
  GLbyte y_offset, two_BF_tris_quad* cpy);
+void copy_BUS_triangles_quad_with_offset
+(BUS_two_tris_quad* mdl, GLbyte x_offset,
+ GLbyte y_offset, BUS_two_tris_quad* cpy);
 void copy_quad_to_offseted_layered_quad(GLfloat *card_copy_coords,
                                         GLfloat *model_coords,
                                         GLfloat x_offset, GLfloat y_offset,
