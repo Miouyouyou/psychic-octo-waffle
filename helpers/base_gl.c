@@ -159,33 +159,6 @@ void uploadTextures(const char *textures_names, int n, GLuint *texid) {
   }
 }
 
-void copy_two_triangles_quad_with_offset
-(GLfloat *model_coords, GLfloat x_offset, GLfloat y_offset,
- GLfloat *card_copy_coords) {
-  two_tris_quad
-    *mdl    = (two_tris_quad *) model_coords,
-    *c_copy = (two_tris_quad *) card_copy_coords;
-  for (int i = 0; i < two_triangles_corners; i ++) {
-    c_copy->points[i].x = mdl->points[i].x + x_offset;
-    c_copy->points[i].y = mdl->points[i].y + y_offset;
-    c_copy->points[i].s = mdl->points[i].s;
-    c_copy->points[i].t = mdl->points[i].t;
-  }
-}
-
-void copy_two_bytes_triangles_quad_with_offset
-(two_BF_tris_quad* mdl, GLbyte x_offset,
- GLbyte y_offset, two_BF_tris_quad* cpy) {
-
-  for (int i = 0; i < two_triangles_corners; i ++) {
-    cpy->points[i].s = mdl->points[i].s;
-    cpy->points[i].t = mdl->points[i].t;
-    cpy->points[i].x = mdl->points[i].x + x_offset;
-    cpy->points[i].y = mdl->points[i].y + y_offset;
-  }
-
-}
-
 void copy_BUS_triangles_quad_with_offset
 (BUS_two_tris_quad* mdl, GLbyte x_offset,
  GLbyte y_offset, BUS_two_tris_quad* cpy) {
@@ -197,50 +170,4 @@ void copy_BUS_triangles_quad_with_offset
    }
  }
 
-void copy_quad_to_offseted_layered_quad
-(GLfloat *card_copy_coords, GLfloat *model_coords,
- GLfloat x_offset, GLfloat y_offset, GLfloat z_layer) {
 
-   /*LOG("copy_coords : %p, model_coords : %p, x: %f, y: %f, z: %f\n",
-       card_copy_coords, model_coords, x_offset, y_offset, z_layer);*/
-
-  two_tris_quad *mdl    = (two_tris_quad *) model_coords;
-  two_layered_tris_quad *c_copy = (two_layered_tris_quad *) card_copy_coords;
-
-  for (int i = 0; i < two_triangles_corners; i ++) {
-    c_copy->points[i].x = mdl->points[i].x + x_offset;
-    c_copy->points[i].y = mdl->points[i].y + y_offset;
-    c_copy->points[i].z = z_layer;
-    c_copy->points[i].s = mdl->points[i].s;
-    c_copy->points[i].t = mdl->points[i].t;
-    /*LOG("copy_coords[%d] : x: %f, y: %f, z: %f, s: %f, t: %f\n",
-        i, c_copy->points[i].x, c_copy->points[i].y, c_copy->points[i].z,
-        c_copy->points[i].s, c_copy->points[i].t);
-    LOG("model_coords[%d] : x: %f, y: %f, s: %f, t: %f\n",
-        i, mdl->points[i].x, mdl->points[i].y, mdl->points[i].s, mdl->points[i].t);*/
-  }
-
-}
-
-void copy_quad_to_scaled_offseted_layered_quad
-(GLfloat *card_copy_coords, GLfloat *model_coords,
-  GLfloat x_offset, GLfloat y_offset, GLfloat z_layer, GLfloat scale) {
-
-    LOG("copy_coords : %p, model_coords : %p, x: %f, y: %f, z: %f, scale: %f\n",
-        card_copy_coords, model_coords, x_offset, y_offset, z_layer, scale);
-    two_tris_quad *mdl    = (two_tris_quad *) model_coords;
-    two_layered_tris_quad *c_copy = (two_layered_tris_quad *) card_copy_coords;
-
-    for (int i = 0; i < two_triangles_corners; i ++) {
-      c_copy->points[i].x = mdl->points[i].x * scale + x_offset;
-      c_copy->points[i].y = mdl->points[i].y * scale + y_offset;
-      c_copy->points[i].z = z_layer;
-      c_copy->points[i].s = mdl->points[i].s;
-      c_copy->points[i].t = mdl->points[i].t;
-      LOG("copy_coords[%d] : x: %f, y: %f, z: %f, s: %f, t: %f\n",
-          i, c_copy->points[i].x, c_copy->points[i].y, c_copy->points[i].z,
-          c_copy->points[i].s, c_copy->points[i].t);
-      LOG("model_coords[%d] : x: %f, y: %f, s: %f, t: %f\n",
-          i, mdl->points[i].x, mdl->points[i].y, mdl->points[i].s, mdl->points[i].t);
-    }
- }
